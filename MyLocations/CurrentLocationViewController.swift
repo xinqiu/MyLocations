@@ -18,9 +18,23 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
     @IBOutlet weak var tagButton: UIButton!
     @IBOutlet weak var getButton: UIButton!
     
+    var location: CLLocation?
+    
     let locationManager = CLLocationManager()
     
     @IBAction func getLocation() {
+        let authStatus = CLLocationManager.authorizationStatus()
+        
+        if authStatus == .NotDetermined {
+            locationManager.requestWhenInUseAuthorization()
+            return 
+        }
+        
+        if authStatus == .Denied || authStatus == .Restricted {
+            showLocationServicesDeniedAlert()
+            return
+        }
+        
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         locationManager.startUpdatingLocation()
@@ -28,13 +42,16 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        updateLabels()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    
+    // MARK: - CLLocationManagerDelegate
     
     func locationManager(manager: CLLocationManager, didFailWithError error: NSError) {
         print("didFailWithError \(error)")
@@ -43,6 +60,32 @@ class CurrentLocationViewController: UIViewController, CLLocationManagerDelegate
     func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let newLocation = locations.last!
         print("didUpdateLocations \(newLocation)")
+        
+        location = newLocation
+        updateLabels()
     }
-
+    
+    func updateLabels() {
+        if let location = location {
+            latitudeLabel.text = String(format: "%.8f", location.coordinate.latitude)
+            longitudeLabel.text = String(format: "%.8f", location.coordinate.longitude)
+            tagButton.hidden = false
+            messageLabel.text = ""
+        } else {
+            latitudeLabel.text = ""
+            longitudeLabel.text = ""
+            addressLabel.text = ""
+            tagButton.hidden = true
+            messageLabel.text = "Tap 'Get My Location' to Start"
+        }
+    }
+    
+    func showLocationServicesDeniedAlert(){
+        let alert = UIAlertController(title: "Location Services Disabled", message: "Please enable location services for this app in Settings.", preferredStyle: .Alert)
+        
+        let okAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+        alert.addAction(okAction)
+        
+        presentViewController(alert, animated: true, completion: nil)
+    }
 }
