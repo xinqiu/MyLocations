@@ -2,7 +2,7 @@
 //  CategoryPickerViewController.swift
 //  MyLocations
 //
-//  Created by Xin Qiu on 16/8/13.
+//  Created by Xin Qiu on 16/8/15.
 //  Copyright © 2016年 Xin Qiu. All rights reserved.
 //
 
@@ -42,7 +42,7 @@ class CategoryPickerViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath)
+        let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
         
         let categoryName = categories[indexPath.row]
         cell.textLabel!.text = categoryName
@@ -52,7 +52,6 @@ class CategoryPickerViewController: UITableViewController {
         } else {
             cell.accessoryType = .None
         }
-        
         return cell
     }
     
@@ -66,6 +65,15 @@ class CategoryPickerViewController: UITableViewController {
                 oldCell.accessoryType = .None
             }
             selectedIndexPath = indexPath
+        }
+    }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "PickedCategory" {
+            let cell = sender as! UITableViewCell
+            if let indexPath = tableView.indexPathForCell(cell) {
+                selectedCategoryName = categories[indexPath.row]
+            }
         }
     }
 }
