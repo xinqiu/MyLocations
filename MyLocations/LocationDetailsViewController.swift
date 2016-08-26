@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreLocation
+import Dispatch
 
 private let dateFormatter: NSDateFormatter = {
     let formatter = NSDateFormatter()
@@ -29,7 +30,13 @@ class LocationDetailsViewController: UITableViewController {
     var categoryName = "No Category"
     
     @IBAction func done() {
-        dismissViewControllerAnimated(true, completion: nil)
+        let hudView = HudView.hudInView(navigationController!.view, animated: true)
+        hudView.text = "Tagged"
+        let delayInSeconds = 0.6
+        let when = dispatch_time(DISPATCH_TIME_NOW, Int64(delayInSeconds * Double(NSEC_PER_SEC)))
+        dispatch_after(when, dispatch_get_main_queue(), {
+            self.dismissViewControllerAnimated(true, completion: nil)
+        })
     }
     
     @IBAction func cancel() {
@@ -58,6 +65,21 @@ class LocationDetailsViewController: UITableViewController {
         }
         
         dateLabel.text = formatDate(NSDate())
+        
+        let gestureRecongnizer = UITapGestureRecognizer(target: self, action: Selector("hideKeyboard:"))
+        gestureRecongnizer.cancelsTouchesInView = false
+        tableView.addGestureRecognizer(gestureRecongnizer)
+    }
+    
+    func hideKeyboard(gestureRecognizer: UITapGestureRecognizer) {
+        let point = gestureRecognizer.locationInView(tableView)
+        let indexPath = tableView.indexPathForRowAtPoint(point)
+        
+        if indexPath != nil && indexPath!.section == 0 && indexPath!.row == 0  {
+            return
+        }
+        
+        descriptionTextView.resignFirstResponder()
     }
     
     func stringFromPlacemark(placemark:CLPlacemark) -> String {
@@ -88,6 +110,16 @@ class LocationDetailsViewController: UITableViewController {
         return dateFormatter.stringFromDate(date)
     }
     
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "PickCategory" {
+            let controller = segue.destinationViewController as! CategoryPickerViewController
+            controller.selectedCategoryName = categoryName
+            
+        }
+    }
+    
+    // MARK: - UITableViewDelegate
+    
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         if indexPath.section == 0 && indexPath.row == 0 {
             return 88
@@ -101,12 +133,19 @@ class LocationDetailsViewController: UITableViewController {
         }
     }
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "PickCategory" {
-            let controller = segue.destinationViewController as! CategoryPickerViewController
-            controller.selectedCategoryName = categoryName
-            
+    override func tableView(tableView: UITableView, willSelectRowAtIndexPath indexPath: NSIndexPath) -> NSIndexPath? {
+        if indexPath.section == 0 || indexPath.section == 1 {
+            return indexPath
+        } else {
+            return nil
         }
     }
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        if indexPath.section == 0 && indexPath.row == 0 {
+            descriptionTextView.becomeFirstResponder()
+        }
+    }
+    
 }
 
