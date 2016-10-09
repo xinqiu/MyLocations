@@ -83,7 +83,7 @@ class LocationDetailsViewController: UITableViewController {
         
         dateLabel.text = formatDate(date)
         
-        let gestureRecongnizer = UITapGestureRecognizer(target: self, action: Selector("hideKeyboard:"))
+        let gestureRecongnizer = UITapGestureRecognizer(target: self, action: #selector(LocationDetailsViewController.hideKeyboard(_:)))
         gestureRecongnizer.cancelsTouchesInView = false
         tableView.addGestureRecognizer(gestureRecongnizer)
     }
